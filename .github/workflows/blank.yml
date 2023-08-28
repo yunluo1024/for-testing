@@ -27,6 +27,8 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
            echo this is list all secrets which started with gcp
            secrets_name=`gh secret list -e dev | grep -i gcp | awk -F" " '{ print $1 }'`
