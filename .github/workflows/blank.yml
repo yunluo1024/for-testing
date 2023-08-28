@@ -19,6 +19,7 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    environment: dev
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -28,7 +29,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a one-line script
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
            echo this is list all secrets which started with gcp
            secrets_name=`gh secret list -e dev | grep -i gcp | awk -F" " '{ print $1 }'`
