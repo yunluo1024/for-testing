@@ -38,6 +38,7 @@ jobs:
            for secret_name in "${secrets_name[@]}";
            do
              export $secret_name=$secret_name
+             echo env $ {{ env }}
              echo "$secret_name" = ${{ secrets[env.secret_name] }}
            done
       # Runs a set of commands using the runners shell
