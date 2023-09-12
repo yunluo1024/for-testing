@@ -49,10 +49,7 @@ jobs:
           key: ${{ runner.OS }}-npm-cache-${{ hashFiles('./README.md') }}
 
       - name: Run a multi-line script
+        if: steps.cache-readme.outputs.cache-hit != 'true'
         run: |
-
-          if steps.cache-readme.outputs.cache-hit != 'true'; then
-            echo "::set-output name=config_changed::true"
-          else
-            echo "::set-output name=config_changed::false"
-          fi
+            # echo "::set-output name=config_changed::true"
+            echo "need to run something"
