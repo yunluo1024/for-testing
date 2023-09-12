@@ -25,10 +25,6 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-        with:
-          ref: main
-          fetch-depth: 0
-
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
@@ -46,21 +42,17 @@ jobs:
              echo "$secret_name" = ${{ secrets[env.secret_name] }}
            done
       # Runs a set of commands using the runners shell
+      - name: cache_readme
+        uses: actions/cache@v3
+        with:
+          path: ./
+          key: ${{ runner.OS }}-npm-cache-${{ hashFiles('./README.md') }}
+
       - name: Run a multi-line script
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
-      - name: Check if file has changed
-        id: file-changed
-        run: |
-          if [[ $(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -c 'README.md') -gt 0 ]]; then
+
+          if steps.cache-readme.outputs.cache-hit != 'true'; then
             echo "::set-output name=config_changed::true"
           else
             echo "::set-output name=config_changed::false"
           fi
-
-      - name: Run Job
-        if: steps.file-changed.outputs.file_changed == 'true'
-        run: |
-          # Your job commands here
-          echo "Running the job because the file has changed."
