@@ -38,6 +38,7 @@ jobs:
         run: |
            echo this is list all secrets which started with gcp
            echo CHECKSUM="$(shasum ${{ inputs.environment}}/README.md | awk '{ print $1 }')" >> "$GITHUB_ENV"
+           echo 'haha' $CHECKSUM
 
       # Runs a set of commands using the runners shell
       - name: cache readme
