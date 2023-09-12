@@ -46,7 +46,7 @@ jobs:
         id: cache_readme
         uses: actions/cache@v3
         with:
-          path: ./
+          path: ./README.md
           key: ${{ runner.OS }}-npm-cache-${{ hashFiles('./README.md') }}
 
       - name: Run a multi-line script
