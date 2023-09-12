@@ -52,5 +52,5 @@ jobs:
       - name: Run a multi-line script
         if: steps.cache_readme.outputs.cache-hit != 'true'
         run: |
-            # echo "::set-output name=config_changed::true"
+            # echo "::set-output name=config_changed::true" piu piu
             echo "need to run something"
