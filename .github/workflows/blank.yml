@@ -47,7 +47,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./README.md
-          key: ${{ runner.OS }}-npm-cache-${{ hashFiles('./README.md') }}
+          key: ${{ runner.OS }}-npm-cache-${{ hashFiles('./{{ runner.OS }}/README.md') }}
 
       - name: Run a multi-line script
         if: steps.cache_readme.outputs.cache-hit != 'true'
