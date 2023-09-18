@@ -30,26 +30,51 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+      - name: GCP Auth
+        id: gcp_auth
+        uses: google-github-actions/auth@v1
+        with:
+            token_format: 'access_token'
+            workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_NAME }}
+            service_account: ${{ secrets.GCP_WORKLOAD_IDENTITY_SA_EMAIL }}
+            access_token_lifetime: 3600s
+            export_environment_variables: true
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-           echo this is list all secrets which started with gcp
-           echo CHECKSUM="$(shasum ${{ inputs.environment}}/README.md | awk '{ print $1 }')" >> "$GITHUB_ENV"
-           echo 'haha' $CHECKSUM
-
-      # Runs a set of commands using the runners shell
-      - name: cache readme
-        id: cache_readme
-        uses: actions/cache@v3
-        with:
-          path: ./README.md
-          key: ${{ runner.OS }}-npm-cache-${{ env.CHECKSUM }}
-
-      - name: Run a multi-line script
-        if: steps.cache_readme.outputs.cache-hit != 'true'
-        run: |
-            # echo "::set-output name=config_changed::true" piu piu
-            echo "need to run something2"
+            set -euxo
+            echo this is list all secrets which started with gcp
+            ACTIVE_CONFIG_NAME=$(gcloud api-gateway gateways describe agw-dev-appert  \
+                --project=prj-dev-appert-375807 \
+                --location=australia-southeast1 \
+                --format="value(apiConfig)"
+              )
+              
+              if [ -n "$ACTIVE_CONFIG_NAME" ]; then
+                CURRENT_API_DOC_FILE_NAME=api-dev.yml
+                ACTIVE_API_DOC_FILE_NAME=api-dev-active.yml
+              
+                # Use the active configuration name to get the full API document
+                CONFIG_DOCUMENT=$(gcloud api-gateway api-configs describe $ACTIVE_CONFIG_NAME \
+                  --api=agw-api-dev-appert \
+                  --view=FULL \
+                  --format="value(openapiDocuments.document.contents)")
+                echo $CONFIG_DOCUMENT > ${ACTIVE_API_DOC_FILE_NAME}-temp
+                cat ${ACTIVE_API_DOC_FILE_NAME}-temp | wc -c
+                cat ${ACTIVE_API_DOC_FILE_NAME}-temp | base64 -d > ${ACTIVE_API_DOC_FILE_NAME}
+                cat $ACTIVE_API_DOC_FILE_NAME
+                echo "API document saved to ${ACTIVE_API_DOC_FILE_NAME}"
+                if cmp -s "$CURRENT_API_DOC_FILE_NAME" "$ACTIVE_API_DOC_FILE_NAME"; then
+                  printf 'The file "%s" is the same as "%s"\n' "$CURRENT_API_DOC_FILE_NAME" "$ACTIVE_API_DOC_FILE_NAME"
+                  echo "api_file_changed=false" >> "$GITHUB_OUTPUT"
+                else
+                  printf 'The file "%s" is different from "%s"\n' "$CURRENT_API_DOC_FILE_NAME" "$ACTIVE_API_DOC_FILE_NAME"
+                  echo "api_file_changed=true" >> "$GITHUB_OUTPUT"
+                fi
+              else
+                echo "No active configuration found."
+                echo "api_file_changed=true" >> "$GITHUB_OUTPUT"
+              fi
